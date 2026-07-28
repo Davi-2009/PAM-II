@@ -5,6 +5,8 @@ export default function App() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         
+        <Text style={styles.textPrincipal}>O site mais importante para sua carreira profissional</Text>
+
         <View style={styles.card}>
         <Image
           style={styles.image}
@@ -56,10 +58,17 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'linear-gradient(180deg, #2193b0 0%, #ffffff 100%)',
+    backgroundColor: '#a7e6ff',
   },
   content: {
     padding: 16,
+  },
+  textPrincipal: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#fff',
   },
   card: {
     backgroundColor: '#fff',
