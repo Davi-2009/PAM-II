@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  ImageBackground,
   Modal,
   Pressable,
   ScrollView,
@@ -102,7 +103,13 @@ function PokemonDetails({ pokemon, onClose }) {
     <Modal animationType="slide" transparent visible onRequestClose={onClose}>
       <View style={styles.modalBackdrop}>
         <Pressable accessibilityLabel="Fechar detalhes" onPress={onClose} style={StyleSheet.absoluteFill} />
-        <View style={styles.detailSheet}>
+        <ImageBackground
+          source={require('../assets/images.jpg')}
+          resizeMode="cover"
+          imageStyle={styles.detailBackgroundImage}
+          style={styles.detailSheet}
+        >
+          <View pointerEvents="none" style={styles.detailImageOverlay} />
           <View style={styles.sheetHandle} />
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detailContent}>
             <View style={styles.detailTopline}>
@@ -157,7 +164,7 @@ function PokemonDetails({ pokemon, onClose }) {
               </View>
             ))}
           </ScrollView>
-        </View>
+        </ImageBackground>
       </View>
     </Modal>
   );
@@ -247,46 +254,35 @@ export default function Pokedex() {
   const renderHeader = () => (
     <View style={styles.pageHeader}>
       <View style={styles.topline}>
-        <View style={styles.brandMark}><Text style={styles.brandMarkText}>A</Text></View>
-        <Text style={styles.brandName}>FIELD GUIDE <Text style={styles.brandAccent}>/ ALOLA</Text></Text>
-        <View style={styles.liveIndicator}><View style={styles.liveDot} /><Text style={styles.liveText}>POKÉDEX ONLINE</Text></View>
+        <View style={styles.brandMark}><Text style={styles.brandMarkText}>◉</Text></View>
+        <View style={styles.brandCopy}>
+          <Text style={styles.brandName}>Pokédex</Text>
+          <Text style={styles.brandAccent}>REGIONAL ALOLA</Text>
+        </View>
+        <View style={styles.generationBadge}><Text style={styles.generationNumber}>07</Text><Text style={styles.generationLabel}>GERAÇÃO</Text></View>
       </View>
 
-      <View style={styles.hero}>
-        <View style={styles.heroCopy}>
-          <Text style={styles.eyebrow}>ARQUIPÉLAGO · PACÍFICO</Text>
-          <Text style={styles.title}>{'Pokédex\n'}<Text style={styles.titleAccent}>Alola</Text></Text>
-          <Text style={styles.heroDescription}>Uma jornada pelas quatro ilhas, seus Pokémon e as formas que só existem sob o sol de Alola.</Text>
-          <View style={styles.generationTag}><Text style={styles.generationTagText}>7ª GERAÇÃO</Text><View style={styles.tagDivider} /><Text style={styles.generationTagText}>2016</Text></View>
+      <View style={styles.searchRow}>
+        <View style={styles.searchBox}>
+          <Text style={styles.searchIcon}>⌕</Text>
+          <TextInput
+            accessibilityLabel="Buscar Pokémon por nome ou número"
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Buscar Pokémon ou número..."
+            placeholderTextColor="#7c858b"
+            style={styles.searchInput}
+            autoCapitalize="none"
+            returnKeyType="search"
+          />
+          {!!query && <Pressable onPress={() => setQuery('')}><Text style={styles.clearSearch}>×</Text></Pressable>}
         </View>
-        <View style={styles.heroVisual}>
-          <View style={styles.sunDisc} />
-          <Image source={{ uri: `${OFFICIAL_ART}/722.png` }} style={styles.heroPokemon} resizeMode="contain" />
-          <Text style={styles.heroCaption}>ROWLET · #722</Text>
-        </View>
+        <View style={styles.dexBadge}><Text style={styles.dexBadgeText}>#</Text></View>
       </View>
 
       <View style={styles.sectionHead}>
-        <View>
-          <Text style={styles.sectionKicker}>REGISTROS DE CAMPO</Text>
-          <Text style={styles.rosterTitle}>Habitantes de Alola</Text>
-        </View>
-        <Text style={styles.rosterCount}>{loading ? '···' : `${filteredPokemon.length} / ${pokemon.length}`}</Text>
-      </View>
-
-      <View style={styles.searchBox}>
-        <Text style={styles.searchIcon}>⌕</Text>
-        <TextInput
-          accessibilityLabel="Buscar Pokémon por nome ou número"
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Buscar Pokémon ou número..."
-          placeholderTextColor="#8da3a5"
-          style={styles.searchInput}
-          autoCapitalize="none"
-          returnKeyType="search"
-        />
-        {!!query && <Pressable onPress={() => setQuery('')}><Text style={styles.clearSearch}>LIMPAR</Text></Pressable>}
+        <Text style={styles.rosterTitle}>Pokémon de Alola</Text>
+        <Text style={styles.rosterCount}>{loading ? '···' : `${filteredPokemon.length} REGISTROS`}</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
@@ -316,7 +312,7 @@ export default function Pokedex() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="light-content" backgroundColor="#081c22" />
+      <StatusBar barStyle="light-content" backgroundColor="#b90c2c" />
       <FlatList
         key={columns}
         data={filteredPokemon}
@@ -343,99 +339,91 @@ export default function Pokedex() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#081c22' },
-  listContent: { paddingBottom: 26, paddingHorizontal: 18, maxWidth: 1240, width: '100%', alignSelf: 'center' },
-  pageHeader: { paddingTop: 18 },
-  topline: { height: 42, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#234047', paddingBottom: 12 },
-  brandMark: { width: 27, height: 27, borderRadius: 14, backgroundColor: '#f7b84b', alignItems: 'center', justifyContent: 'center', marginRight: 9 },
-  brandMarkText: { color: '#10272b', fontSize: 15, fontWeight: '900' },
-  brandName: { color: '#e7f1e8', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  brandAccent: { color: '#80c9ad' },
-  liveIndicator: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#7bd6a5' },
-  liveText: { color: '#a5b7b2', fontSize: 9, fontWeight: '700' },
-  hero: { minHeight: 280, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#234047', overflow: 'hidden' },
-  heroCopy: { flex: 1, paddingTop: 25, paddingBottom: 26, zIndex: 1 },
-  eyebrow: { color: '#f4bf5e', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#f0f4e9', fontSize: 46, lineHeight: 48, fontWeight: '900', marginTop: 12 },
-  titleAccent: { color: '#85d1b1' },
-  heroDescription: { color: '#b4c8c3', fontSize: 13, lineHeight: 20, maxWidth: 420, marginTop: 13 },
-  generationTag: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', marginTop: 18, paddingVertical: 7, paddingHorizontal: 10, borderWidth: 1, borderColor: '#43625e' },
-  generationTagText: { color: '#dbe7d8', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  tagDivider: { width: 1, height: 12, marginHorizontal: 9, backgroundColor: '#607a70' },
-  heroVisual: { width: '43%', height: 250, alignItems: 'center', justifyContent: 'center' },
-  sunDisc: { position: 'absolute', width: 205, height: 205, borderRadius: 110, backgroundColor: '#f0a84b', opacity: 0.14, borderWidth: 1, borderColor: '#f0bd66' },
-  heroPokemon: { width: '100%', height: 205, zIndex: 1 },
-  heroCaption: { color: '#c3d4c5', fontSize: 9, fontWeight: '800', letterSpacing: 1, marginTop: -3 },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 25, marginBottom: 14 },
-  sectionKicker: { color: '#76c3a7', fontSize: 9, fontWeight: '800', letterSpacing: 1.4 },
-  rosterTitle: { color: '#f0f4e9', fontSize: 23, fontWeight: '800', marginTop: 4 },
-  rosterCount: { color: '#a9bfba', fontSize: 12, fontWeight: '700', paddingBottom: 4 },
-  searchBox: { height: 46, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 13, backgroundColor: '#10282e', borderWidth: 1, borderColor: '#315159' },
-  searchIcon: { color: '#f1bf5b', fontSize: 23, width: 27, lineHeight: 26 },
-  searchInput: { flex: 1, color: '#f0f4e9', fontSize: 13, outlineStyle: 'none' },
-  clearSearch: { color: '#87cfb2', fontSize: 9, fontWeight: '800', paddingLeft: 8 },
-  filterRow: { gap: 8, paddingTop: 13, paddingBottom: 10 },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#10282e', borderWidth: 1, borderColor: '#315159' },
-  filterChipActive: { backgroundColor: '#d9a749', borderColor: '#d9a749' },
-  filterText: { color: '#bfd0ca', fontSize: 11, fontWeight: '700' },
-  filterTextActive: { color: '#142a2c' },
-  typeFilterRow: { gap: 7, paddingBottom: 16 },
-  typeFilter: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 9, borderWidth: 1, borderColor: '#28464c' },
-  typeFilterActive: { borderColor: '#84c9ab', backgroundColor: '#15372f' },
-  typeFilterText: { color: '#aebfba', fontSize: 10, fontWeight: '700' },
-  typeFilterTextActive: { color: '#d6f0d9' },
+  screen: { flex: 1, backgroundColor: '#f1f2f4' },
+  listContent: { paddingBottom: 26, maxWidth: 980, width: '100%', alignSelf: 'center' },
+  pageHeader: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: '#d91035' },
+  topline: { minHeight: 54, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.25)', paddingBottom: 10 },
+  brandMark: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginRight: 11 },
+  brandMarkText: { color: '#d91035', fontSize: 29, fontWeight: '900', lineHeight: 34 },
+  brandCopy: { justifyContent: 'center' },
+  brandName: { color: '#fff', fontSize: 25, fontWeight: '900' },
+  brandAccent: { color: '#ffe3e9', fontSize: 9, fontWeight: '800', letterSpacing: 1.2, marginTop: 1 },
+  generationBadge: { marginLeft: 'auto', width: 43, height: 43, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', alignItems: 'center', justifyContent: 'center' },
+  generationNumber: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  generationLabel: { color: '#ffe3e9', fontSize: 6, fontWeight: '800' },
+  searchRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 14 },
+  searchBox: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, backgroundColor: '#fff', borderRadius: 25 },
+  searchIcon: { color: '#d91035', fontSize: 26, width: 29, lineHeight: 29 },
+  searchInput: { flex: 1, color: '#252a30', fontSize: 14, outlineStyle: 'none' },
+  clearSearch: { color: '#d91035', fontSize: 22, fontWeight: '700', paddingLeft: 8 },
+  dexBadge: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  dexBadgeText: { color: '#d91035', fontSize: 24, fontWeight: '800' },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 18, marginBottom: 2 },
+  rosterTitle: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  rosterCount: { color: '#ffe3e9', fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
+  filterRow: { gap: 7, paddingTop: 9, paddingBottom: 8 },
+  filterChip: { paddingHorizontal: 11, paddingVertical: 7, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.42)', borderRadius: 18 },
+  filterChipActive: { backgroundColor: '#fff', borderColor: '#fff' },
+  filterText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  filterTextActive: { color: '#c70d30' },
+  typeFilterRow: { gap: 7, paddingBottom: 4 },
+  typeFilter: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.34)', borderRadius: 15 },
+  typeFilterActive: { borderColor: '#fff', backgroundColor: 'rgba(255,255,255,0.18)' },
+  typeFilterText: { color: '#ffe5ea', fontSize: 9, fontWeight: '700' },
+  typeFilterTextActive: { color: '#fff' },
   typeDot: { width: 7, height: 7, borderRadius: 4 },
   cardRow: {},
   cardSlot: { paddingHorizontal: 5, paddingBottom: 10 },
-  card: { backgroundColor: '#10282e', borderWidth: 1, borderColor: '#24464c', overflow: 'hidden', height: 286 },
-  cardPressed: { opacity: 0.78, borderColor: '#83c7a9' },
-  artStage: { height: 143, position: 'relative', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  cardDex: { position: 'absolute', top: 10, left: 10, color: '#d5e2d7', fontSize: 9, fontWeight: '800', zIndex: 1 },
-  cardImage: { width: '78%', height: 128 },
-  rareMark: { position: 'absolute', right: 9, top: 8, color: '#10272b', backgroundColor: '#f2bd58', paddingHorizontal: 5, paddingVertical: 3, fontSize: 8, fontWeight: '900' },
-  cardInfo: { paddingHorizontal: 11, paddingTop: 9, paddingBottom: 8, flex: 1 },
-  cardName: { color: '#f1f3e9', fontSize: 15, fontWeight: '800' },
+  card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e3e5e8', borderRadius: 13, overflow: 'hidden', height: 274, elevation: 2 },
+  cardPressed: { opacity: 0.82, borderColor: '#d91035' },
+  artStage: { height: 137, position: 'relative', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cardDex: { position: 'absolute', top: 9, right: 10, color: '#737a80', fontSize: 10, fontWeight: '700', zIndex: 1 },
+  cardImage: { width: '78%', height: 124 },
+  rareMark: { position: 'absolute', left: 9, top: 8, color: '#fff', backgroundColor: '#d91035', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8, fontSize: 8, fontWeight: '900' },
+  cardInfo: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, flex: 1, backgroundColor: '#fff' },
+  cardName: { color: '#252a30', fontSize: 14, fontWeight: '800' },
   typeRow: { flexDirection: 'row', gap: 5, marginTop: 6 },
-  typePill: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 2 },
-  typePillText: { color: '#102329', fontSize: 8, fontWeight: '900' },
-  cardDescription: { color: '#aebfba', fontSize: 10, lineHeight: 14, marginTop: 7, flex: 1 },
-  regionLabel: { color: '#70b99e', fontSize: 8, fontWeight: '800', letterSpacing: 0.8, marginTop: 5 },
+  typePill: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 9 },
+  typePillText: { color: '#fff', fontSize: 8, fontWeight: '800' },
+  cardDescription: { color: '#626b73', fontSize: 9, lineHeight: 13, marginTop: 6, flex: 1 },
+  regionLabel: { color: '#c70d30', fontSize: 7, fontWeight: '800', letterSpacing: 0.7, marginTop: 4 },
   emptyState: { alignItems: 'center', justifyContent: 'center', minHeight: 190, padding: 20 },
-  emptyIcon: { color: '#f1bd59', fontSize: 32 },
-  emptyTitle: { color: '#e4eee5', fontSize: 15, fontWeight: '800', marginTop: 10, textAlign: 'center' },
-  emptyText: { color: '#9db2ad', fontSize: 12, textAlign: 'center', marginTop: 7 },
-  retryButton: { marginTop: 13, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: '#d9a749' },
-  retryText: { color: '#142a2c', fontSize: 11, fontWeight: '800' },
-  footer: { color: '#718b88', fontSize: 9, fontWeight: '700', textAlign: 'center', letterSpacing: 1, paddingTop: 20, paddingBottom: 12 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(1, 11, 14, 0.78)', justifyContent: 'flex-end' },
-  detailSheet: { maxHeight: '92%', backgroundColor: '#0c2329', borderTopWidth: 1, borderColor: '#51746d', paddingHorizontal: 22, paddingBottom: 22 },
-  sheetHandle: { alignSelf: 'center', width: 38, height: 3, borderRadius: 2, backgroundColor: '#61807a', marginTop: 10, marginBottom: 9 },
+  emptyIcon: { color: '#d91035', fontSize: 32 },
+  emptyTitle: { color: '#30363b', fontSize: 15, fontWeight: '800', marginTop: 10, textAlign: 'center' },
+  emptyText: { color: '#747d84', fontSize: 12, textAlign: 'center', marginTop: 7 },
+  retryButton: { marginTop: 13, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: '#d91035', borderRadius: 18 },
+  retryText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  footer: { color: '#7c858c', fontSize: 9, fontWeight: '700', textAlign: 'center', letterSpacing: 1, paddingTop: 20, paddingBottom: 12 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(18, 24, 30, 0.48)', justifyContent: 'flex-end' },
+  detailSheet: { maxHeight: '92%', backgroundColor: 'transparent', borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 22, paddingBottom: 22 },
+  sheetHandle: { alignSelf: 'center', width: 38, height: 3, borderRadius: 2, backgroundColor: '#77838a', marginTop: 10, marginBottom: 9 },
   detailContent: { paddingBottom: 20, maxWidth: 580, width: '100%', alignSelf: 'center' },
   detailTopline: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  detailDex: { color: '#82c9ab', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  closeButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17353a' },
-  closeButtonText: { color: '#e3eee4', fontSize: 25, lineHeight: 29 },
-  detailArtStage: { height: 205, alignItems: 'center', justifyContent: 'center', marginTop: 8, backgroundColor: '#143139' },
+  detailDex: { color: '#b40b2b', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
+  closeButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16 },
+  closeButtonText: { color: '#32383d', fontSize: 25, lineHeight: 29 },
+  detailArtStage: { height: 205, alignItems: 'center', justifyContent: 'center', marginTop: 8, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.15)' },
+  detailBackgroundImage: { opacity: 0.95 },
+  detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.58)' },
   detailImage: { width: 195, height: 195 },
-  detailName: { color: '#f2f3e9', fontSize: 28, fontWeight: '900', textAlign: 'center', marginTop: 14 },
+  detailName: { color: '#20272d', fontSize: 28, fontWeight: '900', textAlign: 'center', marginTop: 14 },
   detailTypes: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7, marginTop: 9 },
-  detailType: { paddingHorizontal: 11, paddingVertical: 5 },
-  detailTypeText: { color: '#14272a', fontSize: 10, fontWeight: '900' },
-  ultraLabel: { color: '#f4c25d', fontSize: 9, fontWeight: '900', marginLeft: 4 },
-  detailDescription: { color: '#b8c9c1', fontSize: 12, lineHeight: 19, textAlign: 'center', marginTop: 13 },
-  measureRow: { flexDirection: 'row', backgroundColor: '#122d33', marginTop: 18, paddingVertical: 13 },
+  detailType: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: 12 },
+  detailTypeText: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  ultraLabel: { color: '#a30d2a', fontSize: 9, fontWeight: '900', marginLeft: 4 },
+  detailDescription: { color: '#303940', fontSize: 12, lineHeight: 19, textAlign: 'center', marginTop: 13 },
+  measureRow: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.76)', borderRadius: 10, marginTop: 18, paddingVertical: 13 },
   measureCell: { flex: 1, alignItems: 'center' },
-  measureDivider: { width: 1, backgroundColor: '#35534f' },
-  measureValue: { color: '#edf2e7', fontSize: 16, fontWeight: '800' },
-  measureLabel: { color: '#88a29a', fontSize: 8, fontWeight: '800', letterSpacing: 1, marginTop: 4 },
-  sectionTitle: { color: '#eaf0e5', fontSize: 14, fontWeight: '800', marginTop: 19, marginBottom: 9 },
+  measureDivider: { width: 1, backgroundColor: 'rgba(70,80,88,0.2)' },
+  measureValue: { color: '#20272d', fontSize: 16, fontWeight: '800' },
+  measureLabel: { color: '#6c767d', fontSize: 8, fontWeight: '800', letterSpacing: 1, marginTop: 4 },
+  sectionTitle: { color: '#20272d', fontSize: 14, fontWeight: '800', marginTop: 19, marginBottom: 9 },
   abilityRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  abilityPill: { paddingHorizontal: 9, paddingVertical: 6, borderWidth: 1, borderColor: '#385a56' },
-  abilityText: { color: '#c2d4ca', fontSize: 10, fontWeight: '700' },
+  abilityPill: { paddingHorizontal: 9, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.76)', borderWidth: 1, borderColor: 'rgba(70,80,88,0.16)', borderRadius: 12 },
+  abilityText: { color: '#303940', fontSize: 10, fontWeight: '700' },
   statLine: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statName: { width: 86, color: '#9fb5ad', fontSize: 10 },
-  statValue: { width: 26, color: '#e8eee3', fontSize: 10, fontWeight: '800', textAlign: 'right' },
-  statTrack: { flex: 1, height: 5, backgroundColor: '#203a3d', overflow: 'hidden' },
-  statFill: { height: '100%', backgroundColor: '#e6b44d' },
+  statName: { width: 86, color: '#4e5a62', fontSize: 10 },
+  statValue: { width: 26, color: '#20272d', fontSize: 10, fontWeight: '800', textAlign: 'right' },
+  statTrack: { flex: 1, height: 5, backgroundColor: 'rgba(50,65,74,0.18)', overflow: 'hidden', borderRadius: 3 },
+  statFill: { height: '100%', backgroundColor: '#d91035', borderRadius: 3 },
 });
