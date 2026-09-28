@@ -96,6 +96,11 @@ function PokemonCard({ pokemon, onPress }) {
 }
 
 function PokemonDetails({ pokemon, onClose }) {
+  const [activeTab, setActiveTab] = useState('stats');
+  useEffect(() => {
+    setActiveTab('stats');
+  }, [pokemon?.apiId]);
+
   if (!pokemon) return null;
   const maxStat = 255;
 
@@ -103,24 +108,25 @@ function PokemonDetails({ pokemon, onClose }) {
     <Modal animationType="slide" transparent visible onRequestClose={onClose}>
       <View style={styles.modalBackdrop}>
         <Pressable accessibilityLabel="Fechar detalhes" onPress={onClose} style={StyleSheet.absoluteFill} />
-        <ImageBackground
-          source={require('../assets/images.jpg')}
-          resizeMode="cover"
-          imageStyle={styles.detailBackgroundImage}
-          style={styles.detailSheet}
-        >
-          <View pointerEvents="none" style={styles.detailImageOverlay} />
-          <View style={styles.sheetHandle} />
+        <View style={styles.detailSheet}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detailContent}>
-            <View style={styles.detailTopline}>
-              <Text style={styles.detailDex}>POKÉDEX DE ALOLA · Nº {String(pokemon.dexNumber).padStart(3, '0')}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={onClose} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>×</Text>
-              </Pressable>
-            </View>
-            <View style={styles.detailArtStage}>
+            <ImageBackground
+              source={require('../assets/images.jpg')}
+              resizeMode="cover"
+              imageStyle={styles.detailBackgroundImage}
+              style={styles.detailHero}
+            >
+              <View pointerEvents="none" style={styles.detailHeroTint} />
+              <View style={styles.detailTopline}>
+                <Text style={styles.detailDex}>POKÉDEX DE ALOLA · Nº {String(pokemon.dexNumber).padStart(3, '0')}</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={onClose} style={styles.closeButton}>
+                  <Text style={styles.closeButtonText}>×</Text>
+                </Pressable>
+              </View>
               <Image source={{ uri: pokemon.image }} style={styles.detailImage} resizeMode="contain" />
-            </View>
+            </ImageBackground>
+
+            <View style={styles.detailPanel}>
             <Text style={styles.detailName}>{pokemon.name}</Text>
             <View style={styles.detailTypes}>
               {pokemon.types.map((type) => (
@@ -130,41 +136,67 @@ function PokemonDetails({ pokemon, onClose }) {
               ))}
               {pokemon.isUltraBeast && <Text style={styles.ultraLabel}>ULTRA BEAST</Text>}
             </View>
-            <Text style={styles.detailDescription}>{pokemon.description || 'Um Pokémon que habita as ilhas de Alola.'}</Text>
 
-            <View style={styles.measureRow}>
-              <View style={styles.measureCell}>
-                <Text style={styles.measureValue}>{(pokemon.height / 10).toFixed(1)} m</Text>
-                <Text style={styles.measureLabel}>ALTURA</Text>
-              </View>
-              <View style={styles.measureDivider} />
-              <View style={styles.measureCell}>
-                <Text style={styles.measureValue}>{(pokemon.weight / 10).toFixed(1)} kg</Text>
-                <Text style={styles.measureLabel}>PESO</Text>
-              </View>
+            <View style={styles.detailTabs}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeTab === 'about' }}
+                onPress={() => setActiveTab('about')}
+                style={[styles.detailTab, activeTab === 'about' && styles.detailTabActive]}
+              >
+                <Text style={[styles.detailTabText, activeTab === 'about' && styles.detailTabTextActive]}>Sobre</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeTab === 'stats' }}
+                onPress={() => setActiveTab('stats')}
+                style={[styles.detailTab, activeTab === 'stats' && styles.detailTabActive]}
+              >
+                <Text style={[styles.detailTabText, activeTab === 'stats' && styles.detailTabTextActive]}>Atributos</Text>
+              </Pressable>
             </View>
 
-            <Text style={styles.sectionTitle}>Habilidades</Text>
-            <View style={styles.abilityRow}>
-              {pokemon.abilities.map((ability) => (
-                <View key={ability} style={styles.abilityPill}>
-                  <Text style={styles.abilityText}>{formatName(ability)}</Text>
+            {activeTab === 'about' ? (
+              <View>
+                <Text style={styles.detailDescription}>{pokemon.description || 'Um Pokémon que habita as ilhas de Alola.'}</Text>
+                <View style={styles.measureRow}>
+                  <View style={styles.measureCell}>
+                    <Text style={styles.measureValue}>{(pokemon.height / 10).toFixed(1)} m</Text>
+                    <Text style={styles.measureLabel}>ALTURA</Text>
+                  </View>
+                  <View style={styles.measureDivider} />
+                  <View style={styles.measureCell}>
+                    <Text style={styles.measureValue}>{(pokemon.weight / 10).toFixed(1)} kg</Text>
+                    <Text style={styles.measureLabel}>PESO</Text>
+                  </View>
                 </View>
-              ))}
-            </View>
-
-            <Text style={styles.sectionTitle}>Estatísticas base</Text>
-            {pokemon.stats.map((stat) => (
-              <View key={stat.name} style={styles.statLine}>
-                <Text style={styles.statName}>{STAT_NAMES[stat.name] || stat.name}</Text>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <View style={styles.statTrack}>
-                  <View style={[styles.statFill, { width: `${Math.min(stat.value / maxStat * 100, 100)}%` }]} />
+                <Text style={styles.sectionTitle}>Habilidades</Text>
+                <View style={styles.abilityRow}>
+                  {pokemon.abilities.map((ability) => (
+                    <View key={ability} style={styles.abilityPill}>
+                      <Text style={styles.abilityText}>{formatName(ability)}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
-            ))}
+            ) : (
+              <View>
+                {pokemon.stats.map((stat) => (
+                  <View key={stat.name} style={styles.statLine}>
+                    <Text style={styles.statName}>{STAT_NAMES[stat.name] || stat.name}</Text>
+                    <Text style={styles.statValue}>{stat.value}</Text>
+                    <View style={styles.statTrack}>
+                      <View style={[styles.statFill, { width: `${Math.min(stat.value / maxStat * 100, 100)}%` }]} />
+                    </View>
+                  </View>
+                ))}
+                <Text style={styles.totalStat}>Total de atributos <Text style={styles.totalStatValue}>{pokemon.stats.reduce((total, stat) => total + stat.value, 0)}</Text></Text>
+              </View>
+            )}
+            </View>
+
           </ScrollView>
-        </ImageBackground>
+        </View>
       </View>
     </Modal>
   );
@@ -394,36 +426,43 @@ const styles = StyleSheet.create({
   retryButton: { marginTop: 13, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: '#d91035', borderRadius: 18 },
   retryText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   footer: { color: '#7c858c', fontSize: 9, fontWeight: '700', textAlign: 'center', letterSpacing: 1, paddingTop: 20, paddingBottom: 12 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(18, 24, 30, 0.48)', justifyContent: 'flex-end' },
-  detailSheet: { maxHeight: '92%', backgroundColor: 'transparent', borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 22, paddingBottom: 22 },
-  sheetHandle: { alignSelf: 'center', width: 38, height: 3, borderRadius: 2, backgroundColor: '#77838a', marginTop: 10, marginBottom: 9 },
-  detailContent: { paddingBottom: 20, maxWidth: 580, width: '100%', alignSelf: 'center' },
-  detailTopline: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  detailDex: { color: '#b40b2b', fontSize: 9, fontWeight: '800', letterSpacing: 1 },
-  closeButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(18, 24, 30, 0.58)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 20 },
+  detailSheet: { width: '100%', maxWidth: 520, height: '94%', backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden', elevation: 12 },
+  detailContent: { flexGrow: 1, paddingBottom: 18 },
+  detailHero: { height: 290, alignItems: 'center', paddingHorizontal: 20, paddingTop: 14, overflow: 'hidden' },
+  detailBackgroundImage: { opacity: 1 },
+  detailHeroTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(217, 16, 53, 0.14)' },
+  detailTopline: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  detailDex: { color: '#c70d30', backgroundColor: 'rgba(255,255,255,0.88)', paddingHorizontal: 9, paddingVertical: 6, borderRadius: 12, fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
+  closeButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 16, elevation: 2 },
   closeButtonText: { color: '#32383d', fontSize: 25, lineHeight: 29 },
-  detailArtStage: { height: 205, alignItems: 'center', justifyContent: 'center', marginTop: 8, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.15)' },
-  detailBackgroundImage: { opacity: 0.95 },
-  detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(248, 250, 252, 0.58)' },
-  detailImage: { width: 195, height: 195 },
-  detailName: { color: '#20272d', fontSize: 28, fontWeight: '900', textAlign: 'center', marginTop: 14 },
-  detailTypes: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7, marginTop: 9 },
+  detailImage: { width: 245, height: 235, marginTop: 3 },
+  detailPanel: { flex: 1, marginTop: -22, paddingTop: 18, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  detailName: { color: '#20272d', fontSize: 27, fontWeight: '900', textAlign: 'left' },
+  detailTypes: { flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 7, marginTop: 8 },
   detailType: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: 12 },
   detailTypeText: { color: '#fff', fontSize: 10, fontWeight: '900' },
   ultraLabel: { color: '#a30d2a', fontSize: 9, fontWeight: '900', marginLeft: 4 },
-  detailDescription: { color: '#303940', fontSize: 12, lineHeight: 19, textAlign: 'center', marginTop: 13 },
-  measureRow: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.76)', borderRadius: 10, marginTop: 18, paddingVertical: 13 },
+  detailTabs: { flexDirection: 'row', gap: 22, borderBottomWidth: 1, borderBottomColor: '#e6e8eb', marginTop: 19, marginBottom: 14 },
+  detailTab: { paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  detailTabActive: { borderBottomColor: '#d91035' },
+  detailTabText: { color: '#929ba2', fontSize: 11, fontWeight: '700' },
+  detailTabTextActive: { color: '#30383e' },
+  detailDescription: { color: '#4e5960', fontSize: 12, lineHeight: 19, textAlign: 'left', marginTop: 2 },
+  measureRow: { flexDirection: 'row', backgroundColor: '#f4f5f7', borderRadius: 10, marginTop: 17, paddingVertical: 13 },
   measureCell: { flex: 1, alignItems: 'center' },
-  measureDivider: { width: 1, backgroundColor: 'rgba(70,80,88,0.2)' },
+  measureDivider: { width: 1, backgroundColor: '#d9dde0' },
   measureValue: { color: '#20272d', fontSize: 16, fontWeight: '800' },
   measureLabel: { color: '#6c767d', fontSize: 8, fontWeight: '800', letterSpacing: 1, marginTop: 4 },
   sectionTitle: { color: '#20272d', fontSize: 14, fontWeight: '800', marginTop: 19, marginBottom: 9 },
   abilityRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  abilityPill: { paddingHorizontal: 9, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.76)', borderWidth: 1, borderColor: 'rgba(70,80,88,0.16)', borderRadius: 12 },
+  abilityPill: { paddingHorizontal: 10, paddingVertical: 7, backgroundColor: '#f1f3f5', borderRadius: 14 },
   abilityText: { color: '#303940', fontSize: 10, fontWeight: '700' },
-  statLine: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statName: { width: 86, color: '#4e5a62', fontSize: 10 },
-  statValue: { width: 26, color: '#20272d', fontSize: 10, fontWeight: '800', textAlign: 'right' },
-  statTrack: { flex: 1, height: 5, backgroundColor: 'rgba(50,65,74,0.18)', overflow: 'hidden', borderRadius: 3 },
-  statFill: { height: '100%', backgroundColor: '#d91035', borderRadius: 3 },
+  statLine: { minHeight: 31, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statName: { width: 88, color: '#647078', fontSize: 10 },
+  statValue: { width: 28, color: '#30383e', fontSize: 10, fontWeight: '800', textAlign: 'right' },
+  statTrack: { flex: 1, height: 5, backgroundColor: '#eceef0', overflow: 'hidden', borderRadius: 3 },
+  statFill: { height: '100%', backgroundColor: '#55bd8a', borderRadius: 3 },
+  totalStat: { color: '#657179', fontSize: 10, fontWeight: '700', textAlign: 'right', marginTop: 8 },
+  totalStatValue: { color: '#30383e', fontWeight: '900' },
 });
