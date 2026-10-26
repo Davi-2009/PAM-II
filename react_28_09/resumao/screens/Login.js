@@ -12,7 +12,7 @@ import { useState } from 'react';
 
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-import { auth } from '../../firebase/firebase';
+import { auth } from '../firebase/firebase';
 
 import estilos from './estilo';
 
@@ -103,7 +103,7 @@ export default function Login({ navigation }) {
       <View style={estilos.botao}>
         <Button
           title="Entrar"
-          onPress={fazerLogin}
+          onPress={() => navigation.navigate('Pokedex')}
         />
       </View>
 
@@ -114,6 +114,7 @@ export default function Login({ navigation }) {
           Não possui uma conta? Cadastre-se
         </Text>
       </TouchableOpacity>
+
 
     </View>
   );

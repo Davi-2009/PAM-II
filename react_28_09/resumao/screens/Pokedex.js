@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import {
   ActivityIndicator,
   FlatList,
@@ -202,7 +204,7 @@ function PokemonDetails({ pokemon, onClose }) {
   );
 }
 
-export default function Pokedex() {
+export default function Pokedex({ navigation }) {
   const { width } = useWindowDimensions();
   const columns = width >= 1000 ? 4 : width >= 650 ? 3 : 2;
   const [pokemon, setPokemon] = useState([]);
@@ -218,47 +220,40 @@ export default function Pokedex() {
     setError('');
     setPokemon([]);
     try {
-      const generation = await getJson(`${API}/generation/7/`);
-      const catalog = generation.pokemon_species.map((species) => ({
-        name: species.name,
-        speciesId: Number(species.url.match(/\/pokemon-species\/(\d+)/)?.[1]),
-        isAlolaForm: false,
-      }));
-      ALOLA_FORMS.forEach((name) => {
-        catalog.push({ name, isAlolaForm: true });
-      });
+      const snapshot = await getDocs(collection(db, 'pokemon'));
+      const registros = snapshot.docs
+        .map((documento) => ({ id: documento.id, ...documento.data() }))
+        .map((item) => {
+          const speciesId = Number(item.dexNumber || item.apiId);
+          const height = Number(item.altura ?? 0);
+          const weight = Number(item.peso ?? 0);
 
-      for (let index = 0; index < catalog.length; index += 8) {
-        const batch = catalog.slice(index, index + 8);
-        const loaded = await Promise.allSettled(batch.map(async (entry) => {
-          const details = await getJson(`${API}/pokemon/${entry.name}/`);
-          const speciesId = entry.speciesId || Number(details.species.url.match(/\/pokemon-species\/(\d+)/)?.[1]);
-          const species = await getJson(`${API}/pokemon-species/${speciesId}/`);
-          const localizedName = portugueseText(species.names, 'name') || formatName(species.name);
           return {
-            apiId: details.id,
+            apiId: Number(item.apiId || item.id),
             dexNumber: speciesId,
-            name: entry.isAlolaForm ? `${localizedName} de Alola` : localizedName,
-            searchName: `${species.name} ${details.name} ${localizedName}`.toLocaleLowerCase('pt-BR'),
-            image: details.sprites.other?.['official-artwork']?.front_default || `${OFFICIAL_ART}/${details.id}.png`,
-            types: details.types.map((type) => type.type.name),
-            height: details.height,
-            weight: details.weight,
-            abilities: details.abilities.map((ability) => ability.ability.name),
-            stats: details.stats.map((stat) => ({ name: stat.stat.name, value: stat.base_stat })),
-            description: portugueseText(species.flavor_text_entries, 'flavor_text'),
-            isAlolaForm: entry.isAlolaForm,
+            name: item.nome || item.name || item.id,
+            searchName: (item.nomeBusca || `${item.nome || ''} ${item.id}`).toLocaleLowerCase('pt-BR'),
+            image: item.imagem || item.image || '',
+            types: item.tipos || item.types || [],
+            height: height > 0 ? height * 10 : 0,
+            weight: weight > 0 ? weight * 10 : 0,
+            abilities: item.habilidades || item.abilities || [],
+            stats: (item.atributos || item.stats || []).map((stat) => ({
+              name: stat.nome || stat.name,
+              value: stat.valor ?? stat.value,
+            })),
+            description: item.descricao || item.description || '',
+            isAlolaForm: Boolean(item.formaAlola || item.isAlolaForm),
             isUltraBeast: ULTRA_BEASTS.has(speciesId),
             isStarter: STARTERS.has(speciesId),
           };
-        }));
-        setPokemon((current) => [
-          ...current,
-          ...loaded.filter((result) => result.status === 'fulfilled').map((result) => result.value),
-        ]);
-      }
+        })
+        .sort((primeiro, segundo) => primeiro.apiId - segundo.apiId);
+
+      setPokemon(registros);
     } catch (loadError) {
-      setError('Não foi possível conectar à PokéAPI. Confira sua conexão e tente novamente.');
+      console.log('Erro ao carregar Pokémon do Firebase:', loadError);
+      setError('Não foi possível carregar os Pokémon do banco de dados. Confira sua conexão e tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -291,6 +286,13 @@ export default function Pokedex() {
           <Text style={styles.brandName}>Pokédex</Text>
           <Text style={styles.brandAccent}>REGIONAL ALOLA</Text>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('Editar')}
+          style={styles.editButton}
+        >
+          <Text style={styles.editButtonText}>EDITAR</Text>
+        </Pressable>
         <View style={styles.generationBadge}><Text style={styles.generationNumber}>07</Text><Text style={styles.generationLabel}>GERAÇÃO</Text></View>
       </View>
 
@@ -380,7 +382,9 @@ const styles = StyleSheet.create({
   brandCopy: { justifyContent: 'center' },
   brandName: { color: '#fff', fontSize: 25, fontWeight: '900' },
   brandAccent: { color: '#ffe3e9', fontSize: 9, fontWeight: '800', letterSpacing: 1.2, marginTop: 1 },
-  generationBadge: { marginLeft: 'auto', width: 43, height: 43, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', alignItems: 'center', justifyContent: 'center' },
+  editButton: { marginLeft: 'auto', paddingHorizontal: 10, height: 32, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', alignItems: 'center', justifyContent: 'center' },
+  editButtonText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
+  generationBadge: { marginLeft: 8, width: 43, height: 43, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(255,255,255,0.65)', alignItems: 'center', justifyContent: 'center' },
   generationNumber: { color: '#fff', fontSize: 16, fontWeight: '900' },
   generationLabel: { color: '#ffe3e9', fontSize: 6, fontWeight: '800' },
   searchRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 14 },
